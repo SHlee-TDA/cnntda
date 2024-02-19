@@ -1,21 +1,40 @@
 """
-This script defines a MetricLogger class along with functions for computing common metrics used in machine learning tasks, specifically focusing on classification and segmentation. 
-The MetricLogger class is designed to dynamically log, update, and retrieve performance metrics during model training and evaluation, offering flexibility to handle both predefined and custom metrics.
+This script defines a MetricLogger class along with functions for computing
+common metrics used in machine learning tasks, specifically focusing on 
+classification and segmentation. 
+The MetricLogger class is designed to dynamically log, update, and retrieve 
+performance metrics during model training and evaluation, offering 
+flexibility to handle both predefined and custom metrics.
 
-The class supports operations such as adding new metrics on-the-fly, computing metrics based on model outputs and targets, updating metric values across batches, and resetting metrics for new evaluation phases.
-It also facilitates the calculation of standard metrics like Accuracy, Precision, Recall, F1-Score for classification tasks, and IoU (Intersection over Union), Dice Coefficient for segmentation tasks, with the capability to extend to other metrics as needed.
+The class supports operations such as adding new metrics on-the-fly,
+computing metrics based on model outputs and targets, updating metric
+values across batches, and resetting metrics for new evaluation phases.
+It also facilitates the calculation of standard metrics like Accuracy,
+Precision, Recall, F1-Score for classification tasks, and IoU 
+(Intersection over Union), Dice Coefficient for segmentation tasks, with
+the capability to extend to other metrics as needed.
 
-Predefined metric calculation functions are implemented to work with PyTorch tensors.
-These functions demonstrate how to compute each metric from model predictions and true labels, ensuring compatibility with the MetricLogger's dynamic metric handling system.
+Predefined metric calculation functions are implemented to work with
+PyTorch tensors.
+These functions demonstrate how to compute each metric from model
+predictions and true labels, ensuring compatibility with the MetricLogger's
+dynamic metric handling system.
 
 Key Features:
-- Dynamic metric logging for machine learning models, particularly useful for tracking performance during training and evaluation.
-- Supports classification and segmentation tasks with a set of default metrics for each, while also allowing for custom metric functions.
-- Utilizes PyTorch for tensor operations, enabling efficient computation of metrics directly from model outputs.
-- Includes error handling and type checking to ensure robustness and reliability of metric computations and logging.
+- Dynamic metric logging for machine learning models, particularly useful
+  for tracking performance during training and evaluation.
+- Supports classification and segmentation tasks with a set of default
+  metrics for each, while also allowing for custom metric functions.
+- Utilizes PyTorch for tensor operations, enabling efficient computation
+  of metrics directly from model outputs.
+- Includes error handling and type checking to ensure robustness and
+  reliability of metric computations and logging.
 
 Usage:
-The script is intended to be used as part of a larger machine learning training and evaluation pipeline, where MetricLogger can be instantiated and used to track model performance over time, across different datasets, or under various experimental conditions.
+The script is intended to be used as part of a larger machine learning
+training and evaluation pipeline, where MetricLogger can be instantiated
+and used to track model performance over time, across different datasets,
+or under various experimental conditions.
 
 Example:
     logger = MetricLogger(task="classification", default_metrics=True)

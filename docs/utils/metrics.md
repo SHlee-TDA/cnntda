@@ -1,4 +1,8 @@
 # MetricLogger Documentation
+Author: Seong-Heon Lee (POSTECH MINDS)
+E-mail: shlee0125@postech.ac.kr
+Date: 2024-02-20
+License: MIT
 
 ## Overview
 
