@@ -167,6 +167,7 @@ class MetricLogger:
                 self.metrics[name] += value
             else:
                 raise ValueError(f"Metric '{name}' is not recognized. It must be added before updating.")
+        return self.metrics
 
     def reset_metrics(self):
         """
