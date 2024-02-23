@@ -59,9 +59,6 @@ E-mail: shlee0125@postech.ac.kr
 Date: 2024-02-20
 License: MIT
 """
-
-
-
 from typing import Callable, Dict
 
 import torch
