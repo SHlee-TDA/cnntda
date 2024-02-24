@@ -1,0 +1,48 @@
+{
+    "dataset_options": {
+        "dataset": "HAM10000",
+        "root": "data/HAM10000",
+        "task": "classification",
+        "transforms": [
+            {
+                "name": "Resize",
+                "params": {
+                    "size": [51, 51]
+                }
+            },
+            {
+                "name": "ToTensor",
+                "params": {}
+            }
+        ],
+        "val_size": 0.1,
+        "batch_size": 32,
+        "vectorization": "betti_curves"
+    },
+    "model_options": {
+        "strategy": "baseline",
+        
+
+    },
+    "training_options": {
+        "n_epochs": 1000,
+        "loss_function": "CrossEntropyLoss",
+        "optimizer": {
+            "name": "Adam",
+            "params": {
+                "lr": 0.0001,
+                "weight_decay": 0.01
+            }
+        },
+        "scheduler": null,
+        "early_stopping": 20
+    },
+    "experiment_options": {
+        "title": "CNNTDANet Classification",
+        "ckpt_dir": "experiments/test",
+        "wandb": {
+            "project": "CNNTDANet Research",
+            "name": "231023_classification"
+        }
+    }
+}
