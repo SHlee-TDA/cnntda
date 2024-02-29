@@ -1,8 +1,8 @@
-from utils import compute_output_dim
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
+from   utils import compute_output_dim
 
 
 class ProjectionLayer(nn.Module):

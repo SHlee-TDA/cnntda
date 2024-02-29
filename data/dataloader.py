@@ -7,6 +7,7 @@ from torchvision.transforms import transforms
 
 from base import BaseDataset
 
+
 def detect_datasets(module_path):
     module = importlib.import_module(module_path)
     dataset_mapping = {}

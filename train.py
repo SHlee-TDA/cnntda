@@ -1,17 +1,15 @@
-"""Main script for model training.
+"""
+Main script for model training.
 1. Train a model
 2. Save the history of training
-3. Save the model and check point"""
-
-
-
+3. Save the model and check point
+"""
 import argparse
 import json
-import torch
 
-from trainer import Trainer
-from models import ModelSelector
-from utils.tools import seed_all, print_env
+from   trainer import Trainer
+from   models import ModelSelector
+from   utils.tools import seed_all, print_env
 
 if __name__ == "__main__":
     seed_all(42)
