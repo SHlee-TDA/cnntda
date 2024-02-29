@@ -50,18 +50,15 @@ License: MIT
 import os
 from glob import glob
 
-from sklearn.model_selection import train_test_split
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.optim.lr_scheduler as lr_scheduler
-from torch.utils.data import Subset, DataLoader
-from torchvision.transforms import transforms
 import wandb
 
-from data.datasets import *
 from utils import MetricLogger
+from data import create_data_loaders
 
 
 class Trainer:
@@ -99,21 +96,21 @@ class Trainer:
             print("DataParallel usage is disabled in config.")
 
         # Load data loaders based on the given dataset options
-        self.dataset_options = config["dataset_options"]
-        self.task = self.dataset_options["task"]
+        self.dataset_options = config.get("dataset_options", None)
+        self.task = self.dataset_options.get("task")
         self.metric_logger = MetricLogger(self.task, default_metrics=True)
         self.multimodal_learning = config.get('multimodal_learning', False)
-        self.train_loader, self.val_loader = create_data_loaders(self.dataset_options)
+        self.train_loader, self.val_loader = create_data_loaders(config)
 
         # Extracting training options from the config
-        self.training_options = config["training_options"]
-        self.n_epochs = self.training_options["n_epochs"]
+        self.training_options = config.get("training_options", None)
+        self.n_epochs = self.training_options.get("n_epochs")
         self.criterion = getattr(nn, self.training_options["loss_function"])()
         self.optimizer = get_optimizer(self.model, self.training_options)
         self.scheduler = get_scheduler(self.optimizer, self.training_options)
         
         # Experiment setting
-        self.experiment_options = config["experiment_options"]
+        self.experiment_options = config.get("experiment_options", None)
         wandb.init(**self.experiment_options['wandb'], config=config)
         self.experiment_name = self.experiment_options["title"]
         ckpt_dir = self.experiment_options["ckpt_dir"]
@@ -278,21 +275,7 @@ class Trainer:
             return self._model.module
         else:
             return self._model
-
-
-def get_transforms(transforms_configs):
-    """Convert a list of transform configurations to a torchvision.transforms.Compose object."""
-    transforms_mapping = {
-        "Resize": transforms.Resize,
-        "ToTensor": transforms.ToTensor,
-        "Normalize": transforms.Normalize,
-        # Add more transforms as needed
-    }
-
-    # Fetch the actual transform objects from the mapping using the given parameters
-    transforms_objs = [transforms_mapping[tc["name"]](**tc["params"]) for tc in transforms_configs]
-    return transforms.Compose(transforms_objs)
-
+        
 
 def get_optimizer(model, training_options):
     optimizer_class = getattr(optim, training_options['optimizer']['name'])
@@ -307,58 +290,3 @@ def get_scheduler(optimizer, training_options):
         return scheduler
     return None
 
-
-def create_data_loaders(dataset_options):
-    """Create train and validation dataloaders based on the configuration."""
-    
-    # 1. Determine the dataset class from the dataset name
-    dataset_mapping = {
-        "HAM10000": HAM10000,
-        "PSF_Injection": PSF_Injection,
-        "GWUniverse": GWUniverse
-        # ... Add more datasets as needed
-    }
-    DatasetClass = dataset_mapping[dataset_options["dataset"]]
-    
-    # 2. Fetch the transforms
-    transforms_configs = dataset_options["transforms"]
-    transforms = get_transforms(transforms_configs)
-
-    # 3. Initialize dataset with training flag set to True and False for train and validation respectively
-    train_dataset = DatasetClass(
-        root=dataset_options["root"],
-        transforms=transforms,
-        is_training=True,
-        task=dataset_options["task"],
-        topological_vector="vectorization" in dataset_options,
-        vectors_dir=dataset_options.get("vectorization", None),
-        #modal_test=dataset_options["modal_test"]
-    )
-
-    test_dataset = DatasetClass(
-        root=dataset_options["root"],
-        transforms=transforms,
-        is_training=False,
-        task=dataset_options["task"],
-        topological_vector="vectorization" in dataset_options,
-        vectors_dir=dataset_options.get("vectorization", None)
-    )
-    
-    # 4. Split dataset and create dataloaders
-       # 4. Split dataset and create dataloaders
-    # 데이터셋 인덱스와 레이블 준비
-    indices = list(range(len(train_dataset)))
-    labels = train_dataset.labels
-
-    # 첫 번째 분할: 훈련 및 검증/테스트 세트
-    train_indices, valid_indices, _, _ = train_test_split(
-    indices, labels, stratify=labels, test_size=float(dataset_options["val_size"])) 
-    
-    train_subset = Subset(train_dataset, train_indices)
-    valid_subset = Subset(train_dataset, valid_indices)
-
-    train_loader = DataLoader(train_subset, batch_size=dataset_options["batch_size"], shuffle=True, num_workers=4)
-    val_loader = DataLoader(valid_subset, batch_size=dataset_options["batch_size"], shuffle=False, num_workers=4)
-    #test_loader = DataLoader(test_dataset, batch_size=dataset_options["batch_size"], shuffle=False, num_workers=4)
-
-    return train_loader, val_loader

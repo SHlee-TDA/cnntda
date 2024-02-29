@@ -1,3 +1,5 @@
+from utils import compute_output_dim
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -131,10 +133,12 @@ class BaselineMlpClassifier(nn.Module):
     
 
 class BaselineCNN(nn.Module):
-    def __init__(self, feature_extractor, classifier):
+    def __init__(self,
+                 image_shape,
+                 target_shape):
         super(BaselineCNN, self).__init__()
-        self.feature_extractor = feature_extractor
-        self.classifier = classifier
+        self.feature_extractor = BaselineImgConv2d(image_shape)
+        self.classifier = BaselineMlpClassifier(compute_output_dim(image_shape),target_shape)
 
     def forward(self, x):
         feature_map = self.feature_extractor(x)
