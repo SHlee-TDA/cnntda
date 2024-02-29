@@ -10,7 +10,7 @@ import json
 import torch
 
 from trainer import Trainer
-from models.model import ModelSelector
+from models import ModelSelector
 from utils.tools import seed_all, print_env
 
 if __name__ == "__main__":

@@ -1,43 +1,50 @@
+from baseline import *
+from cnntdanet import *
+from utils import compute_output_dim
+
 import torch
 import torchvision.models as models
 import json
 
+
 class ModelSelector:
     def __init__(self, config):
+        self.multimodal_learning = config.get('multimodal_learning', False)
         self.model_options = config['model_options']
-        self.strategy = self.model_options['strategy']
-        
-        # self.models = {
-        #     'resnet18': models.resnet18,
-        #     'vgg16': models.vgg16,
-        #     # 필요에 따라 다른 모델을 추가할 수 있습니다.
-        # }
+        self.model_type = self.model_options['type']
+        self.input_shapes = self.model_options['input_shapes']
+        self.target_shape = self.model_options['target_shape']
 
-    def load_pretrained_model(self, model_name):
-        """사전 학습된 모델 로드"""
-        if model_name in self.models:
-            return self.models[model_name](pretrained=True)
+    def build(self):
+        if self.model_type == 'baseline':
+            return self._build_baseline_model()
+        elif self.model_type in ['transfer_learning', 'pretrained', 'custom']:
+            # 아직 구현되지 않은 모델 구성 전략에 대한 처리
+            raise NotImplementedError(f"{self.model_type} model is not implemented yet. Stay tuned for future updates.")
         else:
-            raise ValueError(f"Unsupported pre-trained model: {model_name}")
-
-    def build_custom_model(self, config_path):
-        """사용자 정의 모델 구성"""
-        with open(config_path, 'r') as f:
-            config = json.load(f)
-        # 여기에서 사용자 정의 모델을 구성하는 로직을 구현합니다.
-        # 예: config 파일에 기반하여 동적으로 모델 구성
-        return None  # 사용자 정의 모델 반환
-
-    def select_model(self, strategy, model_name=None, config_path=None):
-        """모델 선택 로직"""
-        if strategy == 'baseline':
-            # 간단한 baseline 모델을 선택합니다.
-            return self.models[model_name](pretrained=False)
-        elif strategy == 'transfer_learning':
-            # 사전 학습된 모델을 로드합니다.
-            return self.load_pretrained_model(model_name)
-        elif strategy == 'custom':
-            # 사용자 정의 모델을 구성합니다.
-            return self.build_custom_model(config_path)
+            raise ValueError(f"Unknown model build strategy: {self.model_type}")
+            
+    def _build_baseline_model(self):
+        if self.multimodal_learning == True:
+                projection_dim = 256
+                cnn = BaselineImgConv2d(self.input_shapes['cnn'])
+                tda = BaselineTopoConv1d(self.input_shapes['tda'])
+                mlp = BaselineMlpClassifier(projection_dim, self.target_shape)
+                cnntda = CNNTDAPlus(
+                    self.input_shapes['cnn'],
+                    self.input_shapes['tda'],
+                    cnn,
+                    tda,
+                    mlp,
+                    projection_dim
+                )
+                return cnntda
         else:
-            raise ValueError(f"Unsupported strategy: {strategy}")
+            cnn = BaselineImgConv2d(self.input_shapes['cnn'])
+            mlp = BaselineMlpClassifier(
+                compute_output_dim(cnn, self.input_shapes['cnn']),
+                self.target_shape
+                )
+            model = BaselineCNN(cnn, mlp)
+            return model
+

@@ -1,12 +1,12 @@
-from cnntdanet import CNNTDAPlus
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class BaselineImgConv2d(nn.Module):
-    def __init__(self, in_channels=3):
+    def __init__(self, input_shape=(3, 51, 51)):
         super(BaselineImgConv2d, self).__init__()
+        in_channels, h, w = input_shape
         self.block1 = nn.Sequential(
                     nn.Conv2d(in_channels=in_channels, out_channels=16, kernel_size=3, padding='same'),
                     nn.BatchNorm2d(16),
@@ -24,7 +24,6 @@ class BaselineImgConv2d(nn.Module):
                     nn.MaxPool2d(kernel_size=2)
                     )
         
-
         self.block3 = nn.Sequential(
                     nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, padding='same'),
                     nn.BatchNorm2d(128),
@@ -50,9 +49,10 @@ class BaselineImgConv2d(nn.Module):
 
 
 class BaselineTopoConv1d(nn.Module):
-    def __init__(self, in_channels):
+    def __init__(self, input_shape=(1, 100)):
         super(BaselineTopoConv1d, self).__init__()
-
+        in_channels, l = input_shape
+        
         def conv_bn_relu(in_channels, out_channels, kernel_size=3, stride=1, padding=1):
             return nn.Sequential(
                 nn.Conv1d(in_channels, out_channels, kernel_size, stride, padding),
@@ -74,7 +74,6 @@ class BaselineTopoConv1d(nn.Module):
 
         self.conv4 = conv_bn_relu(128, 256)
         self.pool = nn.MaxPool1d(kernel_size=2, stride=2)
-
 
     def forward(self, x):
         # First block
@@ -115,7 +114,6 @@ class BaselineMlpClassifier(nn.Module):
         self.fc3 = nn.Linear(256, num_classes)
         self.softmax = nn.Softmax()
         
-        
     def forward(self, x):
         x = self.fc1(x)
         x = self.fc_bn1(x)
@@ -130,3 +128,23 @@ class BaselineMlpClassifier(nn.Module):
         #x = self.softmax(x, dim=1)
         
         return x
+    
+
+class BaselineCNN(nn.Module):
+    def __init__(self, feature_extractor, classifier):
+        super(BaselineCNN, self).__init__()
+        self.feature_extractor = feature_extractor
+        self.classifier = classifier
+
+    def forward(self, x):
+        feature_map = self.feature_extractor(x)
+        output = self.classifier(feature_map)
+        return output
+
+    @property
+    def module(self):
+        """
+        If the model is being used with DataParallel, 
+        this property will return the actual model.
+        """
+        return self._modules.get('module', self)

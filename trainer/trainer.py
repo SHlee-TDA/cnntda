@@ -56,13 +56,12 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.optim.lr_scheduler as lr_scheduler
-from torch.utils.data import Subset, DataLoader, random_split
+from torch.utils.data import Subset, DataLoader
 from torchvision.transforms import transforms
-from tqdm import tqdm
 import wandb
 
 from data.datasets import *
-from utils.metrics import MetricLogger
+from utils import MetricLogger
 
 
 class Trainer:
@@ -88,7 +87,7 @@ class Trainer:
         self._model = model.to(self.device)
 
         # Determine if DataParallel should be used based on config and available GPUs
-        self.use_data_parallel = config.get('use_data_parallel', False)  # Default to False if not specified
+        self.use_data_parallel = config.get('multi_gpu_learning', False)  # Default to False if not specified
         if self.use_data_parallel:
             num_gpus = torch.cuda.device_count()
             if num_gpus > 1:
@@ -103,7 +102,7 @@ class Trainer:
         self.dataset_options = config["dataset_options"]
         self.task = self.dataset_options["task"]
         self.metric_logger = MetricLogger(self.task, default_metrics=True)
-        self.multimodal_learning = True if self.dataset_options.get("vectorization", None) else False
+        self.multimodal_learning = config.get('multimodal_learning', False)
         self.train_loader, self.val_loader = create_data_loaders(self.dataset_options)
 
         # Extracting training options from the config
@@ -122,7 +121,6 @@ class Trainer:
         if not os.path.exists(self.ckpt_dir):
             os.makedirs(self.ckpt_dir)
                    
-
     def train(self):
         """
         Conducts the training process over a specified number of epochs, including training and validation steps,
@@ -168,7 +166,7 @@ class Trainer:
             
             # Scheduler update
             if self.scheduler:
-                    self.scheduler.step()
+                self.scheduler.step()
 
             # Log after each epoch
             avg_loss = running_loss / n_samples
@@ -187,7 +185,7 @@ class Trainer:
             print(f"Val Loss: {val_loss:.4f}, " + val_metrics_string)
 
             # logging via wandb
-            wandb.log({
+            log = {
                 "Train": {
                     "Loss": avg_loss, **avg_metrics
                 },
@@ -196,12 +194,18 @@ class Trainer:
                 },
                 "Learning Rate": self.optimizer.param_groups[0]['lr'],
                 "Epoch": epoch,
-                "Modal Importance (CNN)": fusion_weights[0],
-                "Modal Importance (TDA)": fusion_weights[1]
-            })
+            }
+
+            # self.multimodal_learning이 True일 경우에만 Modal Importance 로그 추가
+            if self.multimodal_learning:
+                log["Modal Importance (CNN)"] = fusion_weights[0]
+                log["Modal Importance (TDA)"] = fusion_weights[1]
+
+            # wandb에 로그 데이터 전송
+            wandb.log(log)
 
             # Save checkpoint & Early Stopping
-            self.save_checkpoint(f'last_ckpt.bin')
+            self.save_checkpoint('last_ckpt.bin')
             if val_loss < best_val_loss:
                 no_improve_count = 0
                 self.best_val_loss = val_loss

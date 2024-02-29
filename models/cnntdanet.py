@@ -1,3 +1,5 @@
+from utils import compute_output_dim
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -99,7 +101,7 @@ class CNNTDAPlus(nn.Module):
         image_repr = self.proj_image(self.image_model(image_data))
         topology_repr = self.proj_top(self.topology_model(topology_data))
 
-        # Concatenate the representations
+        # Combine the representations
         combined_repr = self.fusion(image_repr, topology_repr)
         
         # Pass through the classifier
@@ -117,14 +119,3 @@ class CNNTDAPlus(nn.Module):
         this property will return the actual model.
         """
         return self._modules.get('module', self)
-    
-
-def compute_output_dim(model, input_shape=(3, 51, 51)):
-    """Compute the number of output neurons of convolutional layers
-    """
-    # Create a dummy input with the given shape
-    dummy_input = torch.randn(1, *input_shape)
-    # Forward pass the dummy input through the model
-    dummy_output = model(dummy_input)
-    # Return the output shape
-    return dummy_output.shape[-1]
