@@ -49,13 +49,20 @@ class BaseDataset(Dataset, ABC):
         img = self.load_image(idx)  # Load image
         if self.transforms:
             img = self.transforms(img)  # Apply transformations if any
-        target = self.load_target(idx)  # Load target
         
         if not self.use_topology:
-            return img, target
+            if self.is_training:
+                target = self.load_target(idx)  # Load target
+                return img, target
+            else:
+                return img
         else:
             top = self.load_topology(idx)  # Load topological data if multimodal learning is enabled
-            return (img, top), target
+            if self.is_training:
+                target = self.load_target(idx)  # Load target
+                return (img, top), target
+            else:
+                return (img, top)
 
     @abstractmethod
     def load_image(self, idx):
