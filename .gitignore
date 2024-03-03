@@ -163,3 +163,4 @@ cython_debug/
 data/HAM10000
 wandb/*
 experiments/*
+cnntda
