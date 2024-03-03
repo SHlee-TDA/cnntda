@@ -1,11 +1,12 @@
 import inspect
 import importlib
+import os
 
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Subset, DataLoader
 from torchvision.transforms import transforms
 
-from base import BaseDataset
+from .base import BaseDataset
 
 
 def detect_datasets(module_path):
@@ -92,7 +93,7 @@ def create_data_loaders(config):
     
     # 1. Determine the dataset class from the dataset name
     dataset_options = config.get('dataset_options')
-    dataset_mapping = detect_datasets('datasets')
+    dataset_mapping = detect_datasets('data.datasets')
     DatasetClass = dataset_mapping[dataset_options.get("dataset")]
     
     # 2. Fetch the transforms
@@ -101,8 +102,9 @@ def create_data_loaders(config):
 
     # 3. Initialize dataset with training flag set to True and False for train and validation respectively
     dataset = DatasetClass(
+        topology=dataset_options.get('topology'),
         root=dataset_options.get('root'),
-        transforms=transforms,
+        preprocess=transforms,
         multimodal_learning=config.get('multimodal_learning'),
         is_training=True
         )

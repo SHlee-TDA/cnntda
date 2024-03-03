@@ -59,11 +59,11 @@ E-mail: shlee0125@postech.ac.kr
 Date: 2024-02-20
 License: MIT
 """
-from typing import Callable, Dict
+from   typing import Callable, Dict
 
 import torch
 import numpy as np
-from sklearn.metrics import precision_score, recall_score
+from   sklearn.metrics import precision_score, recall_score
 
 
 class MetricLogger:
@@ -91,8 +91,7 @@ class MetricLogger:
     def __init__(self, task: str, default_metrics: bool = True):
         # Validate task type and initialize metrics and metric_functions dictionaries.
         if task not in ["classification", "segmentation"]:
-            raise ValueError(f"Unsupported task '{task}'. 
-                             Supported tasks are 'classification' and 'segmentation'.")
+            raise ValueError(f"Unsupported task '{task}'. Supported tasks are 'classification' and 'segmentation'.")
         self.task = task
         self._use_default_metrics = default_metrics  # Track whether default metrics are used
         self.metrics: Dict[str, float] = {}

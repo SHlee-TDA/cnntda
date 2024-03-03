@@ -1,8 +1,8 @@
-from baseline import BaselineImgConv2d, BaselineTopoConv1d, BaselineMlpClassifier
-from cnntdanet import CNNTDAPlus
-from utils import compute_output_dim
-
 import torch.nn as nn
+
+from   .baseline import BaselineImgConv2d, BaselineTopoConv1d, BaselineMlpClassifier
+from   .cnntdanet import CNNTDAPlus
+from   utils import compute_output_dim
 
 
 class BaselineCNN(nn.Module):

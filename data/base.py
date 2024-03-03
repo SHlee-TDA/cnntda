@@ -1,9 +1,9 @@
-from abc import ABC, abstractmethod
 import os
-from typing import Tuple, Union
+from   abc import ABC, abstractmethod
+from   typing import Tuple, Union
 
 import pandas as pd
-from torch.utils.data import Dataset
+from   torch.utils.data import Dataset
 
 
 class BaseDataset(Dataset, ABC):
@@ -29,7 +29,7 @@ class BaseDataset(Dataset, ABC):
         self.transforms = preprocess  # Preprocessing/transformation function for images.
         self.use_topology = multimodal_learning  # Flag to use topology data alongside images.
         self.is_training = is_training
-        
+        self.multimodal_learning = multimodal_learning
         self.meta = self.load_metadata()  # Load metadata from the metadata directory.
         
     def __len__(self):

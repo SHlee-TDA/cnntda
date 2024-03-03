@@ -48,7 +48,7 @@ License: MIT
 """
 
 import os
-from glob import glob
+from   glob import glob
 
 import numpy as np
 import torch
@@ -57,8 +57,8 @@ import torch.optim as optim
 import torch.optim.lr_scheduler as lr_scheduler
 import wandb
 
-from utils import MetricLogger
-from data import create_data_loaders
+from   utils import MetricLogger
+from   data import create_data_loaders
 
 
 class Trainer:

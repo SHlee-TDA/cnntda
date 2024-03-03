@@ -1,13 +1,13 @@
 import warnings
 import importlib
+import json
 
 import torch
 import torchvision.models as models
-import json
 
-from   baseline import *
-from   cnntdanet import *
-from   custom_models import *
+from   .baseline import *
+from   .cnntdanet import *
+from   .custom_models import *
 from   utils import compute_output_dim
 
 
