@@ -1,6 +1,9 @@
 from base import BaseDataset
 
 
-class UserDataset(BaseDataset):
+class ExampleDataset(BaseDataset):
     def __init__(self):
         pass
+
+    def load_image(self, idx):
+        
