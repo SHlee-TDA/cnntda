@@ -25,7 +25,7 @@ class GeometricShapeMathematics(BaseDataset):
         self.file_names = self.meta['file_name']
         self.targets = self.meta['shape']
         
-        self.prerpocess = transforms.ToTensor()
+        self.prerpocess = preprocess
         
         self.target_transform = {
             'circle': 0,
