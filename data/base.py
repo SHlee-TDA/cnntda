@@ -23,12 +23,12 @@ class BaseDataset(Dataset, ABC):
                 multimodal_learning (bool): Indicates whether to use multimodal data including topology.
         """
         self.root = root
-        self.meta_path = os.path.join(self.root, 'metadata')  # Path to the metadata directory.
-        self.images_path = os.path.join(self.root, 'images')  # Path to the images directory.
-        self.topology_path = os.path.join(self.root, 'topology')  # Path to the topology data directory.
+        self.meta_path = os.path.join(self.root, 'metadata') 
+        self.images_path = os.path.join(self.root, 'images')
+        self.topology_path = os.path.join(self.root, 'topology')
         self.transforms = preprocess  # Preprocessing/transformation function for images.
         self.use_topology = multimodal_learning  # Flag to use topology data alongside images.
-        self.is_training = is_training
+        self.is_training = is_training 
         self.multimodal_learning = multimodal_learning
         self.meta = self.load_metadata()  # Load metadata from the metadata directory.
         
