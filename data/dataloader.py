@@ -1,16 +1,56 @@
+"""A script for creating DataLoader instances for training and inference, based on configurable dataset and transformations.
+
+Author: Seong-Heon Lee (POSTECH MINDS)
+Date: 2024-03-07
+E-mail: shlee0125@postech.ac.kr
+License: MIT 
+
+This script provides utilities for creating DataLoader objects for training, validation, and inference purposes. 
+It supports automatic detection of dataset classes within a specified module, applying transformations to the datasets, and generating DataLoader instances based on user-defined configurations.
+
+Features:
+- Detects and maps dataset classes derived from a BaseDataset class for dynamic dataset loading.
+- Converts a list of transformation configurations into a torchvision.transforms.Compose object for data preprocessing.
+- Creates DataLoader objects for training and validation sets with options for stratification and random splitting.
+- Generates an inference DataLoader with a flexible configuration for model evaluation or real-time predictions.
+
+The script is designed to be flexible and extensible, allowing for easy integration with custom dataset classes and preprocessing steps.
+
+Usage:
+1. Implement your dataset classes inheriting from BaseDataset in `datasets.py`.
+2. Specify your dataset and DataLoader configurations in `config.json`.
+3. Use create_data_loaders() for training/validation purposes or create_inference_loader() for inference.
+"""
+
 import inspect
 import importlib
-import os
+from   typing import Any, Dict, Optional, Tuple, Type
 
-from sklearn.model_selection import train_test_split
-from torch.utils.data import Subset, DataLoader
-from torchvision.transforms import transforms
+from   sklearn.model_selection import train_test_split
+from   torch.utils.data import Subset, DataLoader
+from   torchvision.transforms import Compose, transforms
 
-from .base import BaseDataset
+from   .base import BaseDataset
 
 
-def detect_datasets(module_path):
-    module = importlib.import_module(module_path)
+def detect_datasets(module_path: str) -> Dict[str, Type[BaseDataset]]:
+    """
+    Detect dataset classes in a given module that are subclasses of BaseDataset.
+
+    Args:
+    - module_path (str): The module path to search for dataset classes.
+
+    Returns:
+    - Dict[str, Type[BaseDataset]]: A dictionary mapping dataset class names to their class types.
+    
+    Raises:
+    - ImportError: If the specified module cannot be found.
+    """
+    try:
+        module = importlib.import_module(module_path)
+    except ImportError:
+        raise ImportError(f"Module {module_path} not found. Ensure the module path is correct.")
+    
     dataset_mapping = {}
     for name, obj in inspect.getmembers(module):
         if inspect.isclass(obj) and issubclass(obj, BaseDataset) and obj is not BaseDataset:
@@ -18,8 +58,19 @@ def detect_datasets(module_path):
     return dataset_mapping
 
 
-def get_transforms(transforms_configs):
-    """Convert a list of transform configurations to a torchvision.transforms.Compose object."""
+def get_transforms(transforms_configs: Optional[dict]) -> Optional[Compose]:
+    """
+    Convert a list of transform configurations to a torchvision.transforms.Compose object.
+    
+    Args:
+    - transforms_configs (list of dict): List of transform configurations.
+
+    Returns:
+    - torchvision.transforms.Compose: Composed transforms based on the configurations.
+    
+    Raises:
+    - ValueError: If an unsupported transform is specified in the configurations.
+    """
     if transforms_configs is None:
         return None
     else:
@@ -31,24 +82,34 @@ def get_transforms(transforms_configs):
         }
 
         # Fetch the actual transform objects from the mapping using the given parameters
-        transforms_objs = [transforms_mapping[tc["name"]](**tc["params"]) for tc in transforms_configs]
+        try:
+            transforms_objs = [transforms_mapping[tc["name"]](**tc["params"]) for tc in transforms_configs]
+        except KeyError as e:
+            raise ValueError(f"Transform {e} not supported. Check the transform configurations.")
         return transforms.Compose(transforms_objs)
 
 
-
-def create_data_loaders(config):
-    """Create train and validation dataloaders based on the configuration."""
+def create_data_loaders(config: Dict[str, Any]) -> Tuple[DataLoader, DataLoader]:
+    """
+    Create train and validation dataloaders based on the configuration.
     
-    # 1. Determine the dataset class from the dataset name
+    Args:
+    - config (Dict[str, Any]): Configuration dictionary containing options for dataset and dataloaders.
+
+    Returns:
+    - Tuple[DataLoader, DataLoader]: A tuple containing the training and validation DataLoader objects.
+    """
+    
+    # Determine the dataset class from the dataset name
     dataset_options = config.get('dataset_options')
     dataset_mapping = detect_datasets('datasets')
     DatasetClass = dataset_mapping[dataset_options.get("dataset")]
     
-    # 2. Fetch the transforms
+    # Fetch the transforms
     transforms_configs = dataset_options.get("preprocess")
     transforms = get_transforms(transforms_configs)
 
-    # 3. Initialize dataset with training flag set to True and False for train and validation respectively
+    # Initialize dataset with training flag set for train and validation
     dataset = DatasetClass(
         root=dataset_options.get('root'),
         transforms=transforms,
@@ -56,17 +117,16 @@ def create_data_loaders(config):
         is_training=True
         )
 
-    # 첫 번째 분할: 훈련 및 검증/테스트 세트
-    # 데이터셋 인덱스 준비
+    # Prepare dataset indices for splitting
     indices = list(range(len(dataset)))
 
     if dataset_options.get('task') == 'classification':
-        # 분류 작업인 경우에만 stratify 적용
-        labels = [dataset.load_target(idx) for idx in indices]  # 레이블 로딩을 위한 메서드 또는 콜백 사용
+        # Apply stratification for classification tasks
+        labels = [dataset.load_target(idx) for idx in indices]
         train_indices, valid_indices = train_test_split(
             indices, stratify=labels, test_size=float(dataset_options.get("val_size")))
     else:
-        # 기타 작업인 경우 무작위 분할
+        # Random split for other tasks
         train_indices, valid_indices = train_test_split(
             indices, test_size=float(dataset_options.get("val_size")))
         
@@ -88,55 +148,48 @@ def create_data_loaders(config):
     
     return train_loader, val_loader
 
-def create_data_loaders(config):
-    """Create train and validation dataloaders based on the configuration."""
+
+def create_inference_loader(config: Dict[str, Any]) -> DataLoader:
+    """
+    Create an inference DataLoader based on the provided configuration.
+
+    This function initializes a DataLoader for inference purposes, utilizing the dataset class specified
+    in the configuration.
+
+    Parameters:
+    - config (Dict[str, Any]): A configuration dictionary that includes all necessary information
+      such as dataset options, preprocessing transforms, and DataLoader settings.
+
+    Returns:
+    - DataLoader: A DataLoader object ready for inference, configured according to the provided settings.
+
+    Raises:
+    - ValueError: If the specified dataset class is not found within the available datasets.
+    """
     
-    # 1. Determine the dataset class from the dataset name
+    # Determine the dataset class from the dataset name
     dataset_options = config.get('dataset_options')
-    dataset_mapping = detect_datasets('data.datasets')
-    DatasetClass = dataset_mapping[dataset_options.get("dataset")]
-    
-    # 2. Fetch the transforms
+    dataset_mapping = detect_datasets('datasets')
+    DatasetClass = dataset_mapping.get(dataset_options.get("dataset"))
+
+    # Fetch the transforms
     transforms_configs = dataset_options.get("preprocess")
     transforms = get_transforms(transforms_configs)
 
-    # 3. Initialize dataset with training flag set to True and False for train and validation respectively
+    # Initialize dataset with training flag set for train and validation
     dataset = DatasetClass(
-        topology=dataset_options.get('topology'),
         root=dataset_options.get('root'),
-        preprocess=transforms,
+        transforms=transforms,
         multimodal_learning=config.get('multimodal_learning'),
-        is_training=True
-        )
+        is_training=False  # Set to False for inference mode
+    )
 
-    # 첫 번째 분할: 훈련 및 검증/테스트 세트
-    # 데이터셋 인덱스 준비
-    indices = list(range(len(dataset)))
-
-    if dataset_options.get('task') == 'classification':
-        # 분류 작업인 경우에만 stratify 적용
-        labels = [dataset.load_target(idx) for idx in indices]  # 레이블 로딩을 위한 메서드 또는 콜백 사용
-        train_indices, valid_indices = train_test_split(
-            indices, stratify=labels, test_size=float(dataset_options.get("val_size")))
-    else:
-        # 기타 작업인 경우 무작위 분할
-        train_indices, valid_indices = train_test_split(
-            indices, test_size=float(dataset_options.get("val_size")))
-        
-    train_subset = Subset(dataset, train_indices)
-    valid_subset = Subset(dataset, valid_indices)
-
-    train_loader = DataLoader(
-            train_subset, 
-            batch_size=dataset_options.get("batch_size"), 
-            shuffle=True, 
-            num_workers=dataset_options.get("num_workers")
-            )
-    val_loader = DataLoader(
-            valid_subset, 
-            batch_size=dataset_options.get("batch_size"), 
-            shuffle=False, 
-            num_workers=dataset_options.get("num_workers")
-            )
+    # Initialize the DataLoader for the entire dataset to be used for inference
+    inference_loader = DataLoader(
+        dataset, 
+        batch_size=dataset_options.get("batch_size"), 
+        shuffle=False,
+        num_workers=dataset_options.get("num_workers")
+    )
     
-    return train_loader, val_loader
+    return inference_loader
