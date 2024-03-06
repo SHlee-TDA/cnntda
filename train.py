@@ -1,7 +1,7 @@
 """Main script to train the CNNTDA model (or a baseline model).
 
 Author: Seong-Heon Lee (POSTECH MINDS)
-Date: 2024-03-05
+Date: 2024-03-06
 E-mail: shlee0125@postech.ac.kr
 License: MIT 
 
