@@ -38,7 +38,7 @@ Please check that you prepared your `data` directory structure as follows:
     ├──📄 __init__.py
     ├──📄 base.py
     ├──📄 dataloader.py
-    └──📄: datasets.py
+    └──📄 datasets.py
 ```
 
 
