@@ -102,7 +102,7 @@ def create_data_loaders(config: Dict[str, Any]) -> Tuple[DataLoader, DataLoader]
     
     # Determine the dataset class from the dataset name
     dataset_options = config.get('dataset_options')
-    dataset_mapping = detect_datasets('datasets')
+    dataset_mapping = detect_datasets('data.datasets')
     DatasetClass = dataset_mapping[dataset_options.get("dataset")]
     
     # Fetch the transforms
@@ -169,7 +169,7 @@ def create_inference_loader(config: Dict[str, Any]) -> DataLoader:
     
     # Determine the dataset class from the dataset name
     dataset_options = config.get('dataset_options')
-    dataset_mapping = detect_datasets('datasets')
+    dataset_mapping = detect_datasets('data.datasets')
     DatasetClass = dataset_mapping.get(dataset_options.get("dataset"))
 
     # Fetch the transforms
