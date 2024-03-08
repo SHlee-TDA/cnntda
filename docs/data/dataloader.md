@@ -32,14 +32,14 @@ For example, you might have a file `datasets.py` containing your custom dataset 
 Please check that you prepared your `data` directory structure as follows:
 
 
-```bash
+
 :file_folder: data/
     ├──:file_folder: data_directory
     ├──:page_facing_up: __init__.py
     ├──:page_facing_up: base.py
     ├──:page_facing_up: dataloader.py
     └──:page_facing_up: datasets.py
-```
+
 
 
 ### Configuration
