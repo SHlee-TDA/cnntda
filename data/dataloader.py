@@ -3,7 +3,7 @@
 Author: Seong-Heon Lee (POSTECH MINDS)
 Date: 2024-03-08
 E-mail: shlee0125@postech.ac.kr
-License: MIT 
+License: MIT
 
 This script provides utilities for creating DataLoader objects for training, validation, and inference purposes. 
 It supports automatic detection of dataset classes within a specified module, applying transformations to the datasets, and generating DataLoader instances based on user-defined configurations.

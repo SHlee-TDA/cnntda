@@ -58,7 +58,7 @@ import torch.optim.lr_scheduler as lr_scheduler
 import wandb
 
 from   utils import MetricLogger
-from   data import create_data_loaders
+from   data import create_data_loaders, create_inference_loader
 
 
 class Trainer:
@@ -95,12 +95,14 @@ class Trainer:
         else:
             print("DataParallel usage is disabled in config.")
 
+        self.config = config
         # Load data loaders based on the given dataset options
         self.dataset_options = config.get("dataset_options", None)
         self.task = self.dataset_options.get("task")
         self.metric_logger = MetricLogger(self.task, default_metrics=True)
         self.multimodal_learning = config.get('multimodal_learning', False)
-        self.train_loader, self.val_loader = create_data_loaders(config)
+        self.train_loader, self.val_loader = create_data_loaders(self.config)
+        self._inference_mode = False
 
         # Extracting training options from the config
         self.training_options = config.get("training_options", None)
@@ -220,6 +222,7 @@ class Trainer:
 
     def valid(self):
         # Initialize
+        
         self.model.eval()
         self.metric_logger.reset_metrics()
         running_loss = 0.0
@@ -275,6 +278,18 @@ class Trainer:
             return self._model.module
         else:
             return self._model
+    
+    @property
+    def inference_mode(self):
+        return self._inference_mode
+    
+    @inference_mode.setter
+    def inference_mode(self, value: bool):
+        self._inference_mode = value
+        if value:
+            self.val_loader = create_inference_loader(self.config)
+        else:
+            _, self.val_loader = create_data_loaders(self.config)
         
 
 def get_optimizer(model, training_options):
