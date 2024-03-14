@@ -1,10 +1,15 @@
-"""
-Deep Learning Model Trainer
+"""Deep Learning Model Trainer
 
-This script defines a Trainer class that encapsulates the entire process of training a deep learning model. It handles
-the setup of the model for training on either CPU or GPU, supports single and multi-GPU setups, manages data loading,
-executes the training and validation loops, implements early stopping, saves checkpoints for the best-performing models,
-and logs training metrics using Weights & Biases (wandb).
+This script defines a Trainer class that encapsulates the entire process of training a deep learning model. 
+The Trainer class offers a comprehensive suite of functionalities designed to facilitate the training process
+These functionalities include:
+- Model Setup: Facilitates the setup of the model for training on various hardware configurations, including both CPU and GPU environments. This ensures optimal performance and compatibility across different computing platforms.
+- GPU Support: Offers robust support for single and multi-GPU setups, enabling scalable and accelerated training processes. This feature allows for leveraging multiple GPUs to distribute the computational workload, significantly reducing training time.
+- Data Management: Manages data loading, streamlining the process of feeding data into the model for training. This includes handling various data formats and efficiently batching data for optimal memory usage and speed.
+- Training and Validation: Executes the training and validation loops, automating the iterative process of model learning and evaluation. This ensures that the model is effectively trained on the dataset and accurately validated against a separate set of data to measure its performance.
+- Early Stopping: Implements early stopping to prevent overfitting. This mechanism monitors the model's performance on a validation set and halts training when there is no significant improvement, ensuring the model does not learn from noise and maintains generalizability.
+- Checkpointing: Saves checkpoints for the best-performing models during the training process. This feature allows for the preservation of model states at various stages, facilitating the recovery and continuation of training from specific points and ensuring that the most effective model versions are retained.
+- Metrics Logging: Integrates with Weights & Biases (wandb) for logging training metrics. This enables real-time tracking and visualization of key performance indicators, offering insights into the model's learning progress and facilitating the analysis and optimization of training strategies.
 
 Usage:
     To use this Trainer class, you need to have a PyTorch model, a configuration dictionary that defines your training,
@@ -102,7 +107,7 @@ class Trainer:
         self.metric_logger = MetricLogger(self.task, default_metrics=True)
         self.multimodal_learning = config.get('multimodal_learning', False)
         self.train_loader, self.val_loader = create_data_loaders(self.config)
-        self._inference_mode = False
+        self._inference_mode = False    # For inference mode, set this attribute as `True`
 
         # Extracting training options from the config
         self.training_options = config.get("training_options", None)
@@ -200,7 +205,6 @@ class Trainer:
                 log["Modal Importance (CNN)"] = fusion_weights[0]
                 log["Modal Importance (TDA)"] = fusion_weights[1]
 
-            # wandb에 로그 데이터 전송
             wandb.log(log)
 
             # Save checkpoint & Early Stopping

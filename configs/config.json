@@ -27,11 +27,13 @@
     "model_options": {
         "model_name": "CNNTDAPlus",
         "type": "baseline",
-        "input_shapes": {
-            "cnn": [1, 51, 51],
-            "tda": [1, 256]
-        },
-        "target_shape": 8
+        "init_params": {
+            "input_shapes": {
+                "cnn": [1, 51, 51],
+                "tda": [1, 256]
+            },
+            "target_shape": 8
+        }
     },
     
     "training_options": {
