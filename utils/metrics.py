@@ -1,4 +1,10 @@
 """
+
+Author: Seong-Heon Lee (POSTECH MINDS)
+E-mail: shlee0125@postech.ac.kr
+Date: 2024-02-20
+License: MIT
+
 This script defines a MetricLogger class along with functions for computing
 common metrics used in machine learning tasks, specifically focusing on 
 classification and segmentation. 
@@ -54,10 +60,6 @@ Dependencies:
 - sklearn: Provides functions for precision and recall calculations.
 
 
-Author: Seong-Heon Lee (POSTECH MINDS)
-E-mail: shlee0125@postech.ac.kr
-Date: 2024-02-20
-License: MIT
 """
 from   typing import Callable, Dict
 
